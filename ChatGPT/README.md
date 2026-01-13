@@ -10,6 +10,8 @@ Conversational AI systems like ChatGPT have revolutionized how we interact with 
 
 In this comprehensive guide, I'll guide you through the design of a ChatGPT-like system from the ground up, exploring every architectural decision, calculating exact resource requirements, and addressing the engineering challenges that arise at scale. Whether you're preparing for system design exam or building production AI systems, this article will provide you with practical insights and battle-tested patterns.
 
+---
+
 ## Contents
 1. [Requirements Analysis](#requirements-analysis)
 2. [High-Level Architecture](#high-level-architecture)
@@ -22,6 +24,7 @@ In this comprehensive guide, I'll guide you through the design of a ChatGPT-like
 9. [Scalability Strategies](#scalability-strategies)
 10. [Technology Stack](#technology-stack)
 
+---
 ## Requirements Analysis
 
 1. **Functional Requirements**
@@ -73,6 +76,89 @@ In this comprehensive guide, I'll guide you through the design of a ChatGPT-like
     - Circuit breakers for dependent services
     - Zero-downtime deployments with blue-green or canary strategies
 
+---
+
 ## High Level Architecture
 The system follows a microservices architecture with clear separation of concerns. Here's the comprehensive architectural overview:
 ![architecture](diagrams/architecture.png)
+
+**1. Client Layer**
+- Web applications (React/Next.js SPA)
+- Native mobile apps (iOS, Android)
+- Third-party API clients
+
+**2. Edge Layer**
+- CDN for static asset delivery and edge caching
+- Load balancers distribute traffic across API gateway instances
+- WAF protects against common web exploits (SQL injection, XSS, etc.)
+
+**3. API Gateway**
+- Single entry point for all client requests
+- Authentication and authorization enforcement
+- Request routing and protocol translation
+- Rate limiting and quota enforcement
+
+**4. Application Layer**
+- Microservices handling specific business logic
+- Stateless design for horizontal scalability
+- Event-driven communication via message queues
+
+**5. AI/ML Layer**
+- GPU clusters running LLM inference workloads
+- Model routing for optimal resource utilization
+- Response caching to reduce inference costs
+
+**6. Data Layer**
+- Polyglot persistence: right database for each use case
+- Separation of hot (active) and cold (archived) data
+- Replication and sharding for scalability
+
+---
+
+## API Design
+
+### RESTful Endpoints
+
+Our API follows REST principles with versioning and clear resource naming:
+
+**Authentication Endpoints**
+
+```http
+POST   /v1/auth/register      # Create new user account
+POST   /v1/auth/login         # Authenticate and receive JWT token
+POST   /v1/auth/logout        # Invalidate current session
+POST   /v1/auth/refresh       # Refresh expired JWT token
+POST   /v1/auth/reset         # Password reset flow
+```
+
+**Chat & Conversation Endpoints**
+
+```http
+POST   /v1/chat/completions           # Send message and get response
+POST   /v1/chat/completions/streaming # Streaming response via SSE
+GET    /v1/conversations              # List user's conversations
+GET    /v1/conversations/{id}         # Get specific conversation
+POST   /v1/conversations              # Create new conversation
+DELETE /v1/conversations/{id}         # Delete conversation
+PATCH  /v1/conversations/{id}         # Update conversation metadata
+GET    /v1/conversations/{id}/messages # Get conversation messages
+```
+
+**User Management Endpoints**
+
+```http
+GET    /v1/users/me           # Get current user profile
+PATCH  /v1/users/me           # Update user profile
+GET    /v1/users/usage        # Get usage statistics and limits
+GET    /v1/users/api-keys     # List API keys
+POST   /v1/users/api-keys     # Generate new API key
+DELETE /v1/users/api-keys/{id} # Revoke API key
+```
+
+**File & Attachment Endpoints**
+
+```http
+POST   /v1/files              # Upload file
+GET    /v1/files/{id}         # Retrieve file
+DELETE /v1/files/{id}         # Delete file
+```
